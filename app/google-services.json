@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "96948832595",
+    "firebase_url": "https://admob-5b5fd.firebaseio.com",
+    "project_id": "admob-5b5fd",
+    "storage_bucket": "admob-5b5fd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96948832595:android:63097e1f55ed66a784b9a6",
+        "android_client_info": {
+          "package_name": "com.ratna.appyhightask"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "96948832595-6krm30gpkgsi494emlkvbcaec1h5k8n7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ratna.appyhightask",
+            "certificate_hash": "b785a8d1568cfba6793aa242e942de4af6e5f9aa"
+          }
+        },
+        {
+          "client_id": "96948832595-blopmgrl7jk2761hg58eldo553ircgus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBN3zFVVxtQ-conVtBzTyOf57RerH_UrGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "96948832595-blopmgrl7jk2761hg58eldo553ircgus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
