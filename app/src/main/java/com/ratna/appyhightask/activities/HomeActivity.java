@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -19,10 +20,17 @@ import com.android.volley.VolleyError;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.NativeExpressAdView;
+import com.google.android.gms.ads.VideoController;
+import com.google.android.gms.ads.VideoOptions;
+import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.onesignal.OSNotification;
+import com.onesignal.OSNotificationAction;
+import com.onesignal.OSNotificationOpenResult;
 import com.onesignal.OneSignal;
 import com.ratna.appyhightask.adapter.HomeAdapter;
 import com.ratna.appyhightask.interfaces.IParseListener;
@@ -37,16 +45,24 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity implements IParseListener, View.OnClickListener, PopupMenu.OnMenuItemClickListener {
+    // The number of native ads to load and display.
+    public static final int NUMBER_OF_ADS = 5;
 
+    // The AdLoader used to load ads.
+    private AdLoader adLoader;
+
+    // List of native ads that have been successfully loaded.
+    private List<UnifiedNativeAd> mNativeAds = new ArrayList<>();
     RecyclerView recyclerView;
     GridLayoutManager mGridLayoutManager;
     String url;
 
-    public static ArrayList<NewsDetails> newsModelArrayList = new ArrayList<>();
+    public static ArrayList<Object> newsModelArrayList = new ArrayList<>();
     HomeAdapter homeAdapter;
-    NativeExpressAdView nativeAd;
+
     ImageView imglocation;
     String code;
     String ID;
@@ -55,7 +71,7 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-       ID = Settings.Secure.getString(getContentResolver(),
+        ID = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
         initComponents();
@@ -74,9 +90,17 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
             Toast.makeText(this, "Please check your internet connection and try again later", Toast.LENGTH_SHORT).show();
 
         }
-        admob();
+        // Initialize the Google Mobile Ads SDK
+        MobileAds.initialize(this,
+                getString(R.string.ad_unit_id));
+
         pushNotifications();
+
+
+        loadNativeAds();
+
     }
+
 
     private void setClickListeners() {
         imglocation.setOnClickListener(this);
@@ -90,6 +114,8 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
 
     private void pushNotifications() {
         OneSignal.startInit(this)
+                .setNotificationReceivedHandler(new ExampleNotificationReceivedHandler())
+                .setNotificationOpenedHandler(new ExampleNotificationOpenedHandler())
                 .inFocusDisplaying(OneSignal.OSInFocusDisplayOption.Notification)
                 .unsubscribeWhenNotificationsAreDisabled(true)
                 .init();
@@ -123,48 +149,7 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
         serverResponse.serviceRequestGet(this, url, null, this, WsUtils.WS_CODE_NEWS);
     }
 
-    private void admob() {
-        MobileAds.initialize(this, "ca-app-pub-9190916303459690/6565482855");
-      /* AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-9190916303459690/6565482855")
-                .forUnifiedNativeAd(new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
-                    @Override
-                    public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAd) {
-                        // Show the ad.
-                       *//* if (adLoader.isLoading()) {
-                            // The AdLoader is still loading ads.
-                            // Expect more adLoaded or onAdFailedToLoad callbacks.
-                        } else {
-                            // The AdLoader has finished loading ads.
-                        }*//*
-                        nativeAd =(NativeExpressAdView)findViewById(R.id.nativeadd);
-                        nativeAd.setNativead(unifiedNativeAd);
-                    }
-                })
-                .withAdListener(new AdListener() {
-                    @Override
-                    public void onAdFailedToLoad(int errorCode) {
-                        // Handle the failure by logging, altering the UI, and so on.
-                    }
-                })
-                .withNativeAdOptions(new NativeAdOptions.Builder()
-                        // Methods in the NativeAdOptions.Builder class can be
-                        // used here to specify individual options settings.
-                        .build())
-                .build();
-        adLoader.loadAds(new AdRequest.Builder().build(), 3);*/
 
-
-        NativeExpressAdView mAdView = (NativeExpressAdView)findViewById(R.id.nativeadd);
-        AdRequest adRequest = new AdRequest.Builder()
-
-                .addTestDevice(ID)
-                .build();
-
-        if (mAdView != null) {
-
-            mAdView.loadAd(adRequest);
-        }
-    }
 
 
     @Override
@@ -196,15 +181,17 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                     for (int i = 0; i < jsonArray.length(); i++) {
 
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        newsModelArrayList.add(new NewsDetails
-                                (jsonObject.optString("author"),
-                                        jsonObject.optString("title"),
-                                        jsonObject.optString("description"),
-                                        jsonObject.optString("url"),
-                                        jsonObject.optString("urlToImage"),
-                                        jsonObject.optString("publishedAt"),
-                                        jsonObject.optString("content")));
-
+                        /*newsModelArrayList.add(new NewsDetails
+                                ());*/
+                        NewsDetails newsDetails = new NewsDetails();
+                        newsDetails.setAuthor(jsonObject.optString("author"));
+                        newsDetails.setTitle(jsonObject.optString("title"));
+                        newsDetails.setDescription(jsonObject.optString("description"));
+                        newsDetails.setUrl(jsonObject.optString("url"));
+                        newsDetails.setUrltoimage(jsonObject.optString("urlToImage"));
+                        newsDetails.setPublishedat(jsonObject.optString("publishedAt"));
+                        newsDetails.setContent(jsonObject.optString("content"));
+                        newsModelArrayList.add(newsDetails);
                     }
 
                     setAdapter();
@@ -219,7 +206,11 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     }
 
     private void setAdapter() {
-        homeAdapter = new HomeAdapter(this, newsModelArrayList);
+        Log.e("Adapter", "" + mNativeAds.size());
+        if (mNativeAds.size() >= 1) {
+            Log.e("Adapter", "" + mNativeAds.get(0).getPrice());
+        }
+        homeAdapter = new HomeAdapter(this, newsModelArrayList, mNativeAds);
         recyclerView.setAdapter(homeAdapter);
     }
 
@@ -265,6 +256,108 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                 return true;
             default:
                 return false;
+        }
+    }
+
+
+    private void insertAdsInMenuItems() {
+        if (mNativeAds.size() <= 0) {
+            return;
+        }
+
+        int offset = (newsModelArrayList.size() / mNativeAds.size()) + 1;
+        int index = 0;
+        for (UnifiedNativeAd ad : mNativeAds) {
+            newsModelArrayList.add(index, ad);
+            index = index + offset;
+        }
+    }
+
+    private void loadNativeAds() {
+
+        AdLoader.Builder builder = new AdLoader.Builder(this, getString(R.string.ad_unit_id));
+        adLoader = builder.forUnifiedNativeAd(
+                new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
+                    @Override
+                    public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAd) {
+                        // A native ad loaded successfully, check if the ad loader has finished loading
+                        // and if so, insert the ads into the list.
+                        mNativeAds.add(unifiedNativeAd);
+                        Toast.makeText(HomeActivity.this, "native ad success", Toast.LENGTH_SHORT).show();
+
+                        if (!adLoader.isLoading()) {
+                            insertAdsInMenuItems();
+                            // loadMenu();
+                        }
+                    }
+                }).withAdListener(
+                new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(int errorCode) {
+                        // A native ad failed to load, check if the ad loader has finished loading
+                        // and if so, insert the ads into the list.
+                        Log.e("MainActivity", "The previous native ad failed to load. Attempting to"
+                                + " load another.");
+                        Toast.makeText(HomeActivity.this, "native ad failed to load", Toast.LENGTH_SHORT).show();
+                        if (!adLoader.isLoading()) {
+                            insertAdsInMenuItems();
+                            // loadMenu();
+                        }
+                    }
+                }).build();
+
+        // Load the Native Express ad.
+        adLoader.loadAds(new AdRequest.Builder().build(), NUMBER_OF_ADS);
+    }
+    class ExampleNotificationReceivedHandler implements OneSignal.NotificationReceivedHandler {
+        @Override
+        public void notificationReceived(OSNotification notification) {
+            JSONObject data = notification.payload.additionalData;
+            String customKey;
+
+            if (data != null) {
+                customKey = data.optString("customkey", null);
+                if (customKey != null)
+                    Log.i("OneSignalExample", "customkey set with value: " + customKey);
+            }
+        }
+    }
+
+
+
+    class ExampleNotificationOpenedHandler implements OneSignal.NotificationOpenedHandler {
+        // This fires when a notification is opened by tapping on it.
+        @Override
+        public void notificationOpened(OSNotificationOpenResult result) {
+            Log.i("OSNotificationPayload", "result.notification.payload.toJSONObject().toString(): " + result.notification.payload.toJSONObject().toString());
+            // Capture Launch URL (App URL) here
+
+
+            JSONObject data = result.notification.payload.additionalData;
+            String customKey;
+            Log.e("data",""+data);
+            if (data != null) {
+                try {
+                    customKey = data.getString("customerkey");
+                    Log.e("key",""+customKey);
+                    if (customKey != null) {
+                        Intent intent = new Intent(HomeActivity.this, NewsDetailsActivity.class);
+                        // intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("newsurl", result.notification.payload.launchURL);
+                        Log.i("OneSignalExample", "openURL = " + result.notification.payload.launchURL);
+                        // startActivity(intent);
+                        startActivity(intent);
+                        Log.i("customkey", "customkey set with value: " + customKey);
+                    }else {
+                        Intent home=new Intent(HomeActivity.this,HomeActivity.class);
+                        startActivity(home);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
 }

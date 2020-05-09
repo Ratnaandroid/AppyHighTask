@@ -7,7 +7,7 @@ package com.ratna.appyhightask.model;
 public class NewsDetails {
     String author,title,description,url,urltoimage,publishedat,content;
 
-    public NewsDetails(String author, String title, String description, String url, String urltoimage, String publishedat, String content) {
+   /* public NewsDetails(String author, String title, String description, String url, String urltoimage, String publishedat, String content) {
         this.author = author;
         this.title = title;
         this.description = description;
@@ -15,7 +15,7 @@ public class NewsDetails {
         this.urltoimage = urltoimage;
         this.publishedat = publishedat;
         this.content = content;
-    }
+    }*/
 
     public String getAuthor() {
         return author;

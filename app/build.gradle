@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        maven { url 'https://plugins.gradle.org/m2/'}
+        maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.6, 0.99.99]'
@@ -19,7 +19,7 @@ android {
         exclude 'META-INF/INDEX.LIST'
     }
     compileSdkVersion 28
-
+    buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.ratna.appyhightask"
         minSdkVersion 22
@@ -29,7 +29,7 @@ android {
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
-                onesignal_app_id: '29fb7184-08f2-40bd-a106-3d1a5b2c9f54',
+                onesignal_app_id               : '29fb7184-08f2-40bd-a106-3d1a5b2c9f54',
                 // Project number pulled from dashboard, local value is ignored.
                 onesignal_google_project_number: 'REMOTE'
         ]
@@ -46,9 +46,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-packagingOptions {
-    exclude 'META-INF/proguard/androidx-annotations.pro'
-}
+    packagingOptions {
+        exclude 'META-INF/proguard/androidx-annotations.pro'
+    }
 
 }
 
@@ -61,7 +61,7 @@ dependencies {
     implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'com.android.volley:volley:1.0.0'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
-    implementation 'com.google.android.gms:play-services-ads:17.1.1'
+
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
     testImplementation 'junit:junit:4.12'
@@ -69,5 +69,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation "android.arch.work:work-runtime:$work_version"
     implementation 'com.onesignal:OneSignal:[3.13.0, 3.99.99]'
-    //implementation project(':NativeTemplatesAndroid-1.0.0')
+    implementation 'com.google.firebase:firebase-ads:11.0.0'
 }
+apply plugin: 'com.google.gms.google-services'
