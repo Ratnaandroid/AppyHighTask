@@ -28,6 +28,10 @@ import com.google.android.gms.ads.VideoOptions;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.onesignal.OSNotification;
 import com.onesignal.OSNotificationAction;
 import com.onesignal.OSNotificationOpenResult;
@@ -45,6 +49,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity implements IParseListener, View.OnClickListener, PopupMenu.OnMenuItemClickListener {
@@ -66,6 +71,8 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     ImageView imglocation;
     String code;
     String ID;
+    FirebaseRemoteConfig mFirebaseRemoteConfig;
+    boolean isStatus = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,14 +100,38 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
         // Initialize the Google Mobile Ads SDK
         MobileAds.initialize(this,
                 getString(R.string.ad_unit_id));
+        mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                .setDeveloperModeEnabled(true)
+                .build();
+        //mFirebaseRemoteConfig.setConfigSettingsAsync(configSettings);
+
+        HashMap<String,Object> defaults = new HashMap<>();
+        defaults.put("ads_on",true);
+        mFirebaseRemoteConfig.setDefaults(defaults);
+
+        final Task<Void> fetch = mFirebaseRemoteConfig.fetch(0);
+        fetch.addOnSuccessListener(this, new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                mFirebaseRemoteConfig.activateFetched();
+
+                isStatus = (boolean)mFirebaseRemoteConfig.getBoolean("ads_on");
+               // Toast.makeText(HomeActivity.this, "Success :"+isStatus, Toast.LENGTH_SHORT).show();
+                if(isStatus){
+                    loadNativeAds();
+                }
+            }
+        });
+
+
+
      /*   admob();
         addNativeExpressAds();
         setUpAndLoadNativeExpressAds();*/
 
         pushNotifications();
 
-
-        loadNativeAds();
         // loadMenu();
     }
 
@@ -240,7 +271,9 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     public boolean onMenuItemClick(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.india:
-                loadNativeAds();
+                if(isStatus){
+                    loadNativeAds();
+                }
                 code = "in";
                 if (Utility.isNetworkAvailable(this)) {
                     callServiceforNews();
@@ -250,7 +283,9 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                 }
                 return true;
             case R.id.usa:
-                loadNativeAds();
+                if(isStatus){
+                    loadNativeAds();
+                }
                 code = "us";
                 if (Utility.isNetworkAvailable(this)) {
                     callServiceforNews();
@@ -288,7 +323,7 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                         // A native ad loaded successfully, check if the ad loader has finished loading
                         // and if so, insert the ads into the list.
                         mNativeAds.add(unifiedNativeAd);
-                        Toast.makeText(HomeActivity.this, "native ad success", Toast.LENGTH_SHORT).show();
+                      //  Toast.makeText(HomeActivity.this, "native ad success", Toast.LENGTH_SHORT).show();
 
                         if (!adLoader.isLoading()) {
                             insertAdsInMenuItems();
@@ -303,7 +338,7 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                         // and if so, insert the ads into the list.
                         Log.e("MainActivity", "The previous native ad failed to load. Attempting to"
                                 + " load another.");
-                        Toast.makeText(HomeActivity.this, "native ad failed to load", Toast.LENGTH_SHORT).show();
+                     //   Toast.makeText(HomeActivity.this, "native ad failed to load", Toast.LENGTH_SHORT).show();
                         if (!adLoader.isLoading()) {
                             insertAdsInMenuItems();
                             // loadMenu();
