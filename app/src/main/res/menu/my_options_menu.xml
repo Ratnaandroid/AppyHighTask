@@ -4,5 +4,5 @@
     <item android:id="@+id/india"
         android:title="India"></item>
     <item android:id="@+id/usa"
-        android:title="Us"></item>
+        android:title="USA"></item>
 </menu>

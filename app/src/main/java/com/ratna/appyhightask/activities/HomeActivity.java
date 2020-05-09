@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
@@ -73,10 +74,12 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     String ID;
     FirebaseRemoteConfig mFirebaseRemoteConfig;
     boolean isStatus = true;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_home);
         ID = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
@@ -92,6 +95,9 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
         setClickListeners();
 
         if (Utility.isNetworkAvailable(this)) {
+            if (progressBar!=null){
+                progressBar.setVisibility(View.VISIBLE);
+            }
             callServiceforNews();
         } else {
             Toast.makeText(this, "Please check your internet connection and try again later", Toast.LENGTH_SHORT).show();
@@ -124,12 +130,6 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
             }
         });
 
-
-
-     /*   admob();
-        addNativeExpressAds();
-        setUpAndLoadNativeExpressAds();*/
-
         pushNotifications();
 
         // loadMenu();
@@ -157,6 +157,7 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
 
 
     private void setReferences() {
+        progressBar=(ProgressBar)findViewById(R.id.progressBar);
         imglocation = (ImageView) findViewById(R.id.locations);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         ViewCompat.setNestedScrollingEnabled(recyclerView, false);
@@ -166,33 +167,31 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
         recyclerView.setLayoutManager(mGridLayoutManager);
         recyclerView.setHasFixedSize(true);
 
-      /*  int widthInDP = getResources().getConfiguration().screenWidthDp;
-        widthInDP -= getResources().getDimension(R.dimen.activity_horizontal_margin);
-        nativeAd.setAdSize(new AdSize(widthInDP, 250));*/
-
-
-    }
+      }
 
     private void callServiceforNews() {
+
         if (code == null || code.equals("")) {
             code = "in";
         }
         url = "http://newsapi.org/v2/top-headlines?country=" + code + "&apiKey=a64547cb2b7b41eca39d63ea0687419b";
         Log.e("hit", "" + url);
         ServerResponse serverResponse = new ServerResponse();
-        serverResponse.serviceRequestGet(this, url, null, this, WsUtils.WS_CODE_NEWS);
+        serverResponse.serviceRequestGet(HomeActivity.this, url, null, this, WsUtils.WS_CODE_NEWS);
     }
-
-
-
 
     @Override
     public void ErrorResponse(VolleyError error, int requestCode) {
-
+        if (progressBar!=null){
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void SuccessResponse(String response, int requestCode) {
+        if (progressBar!=null){
+            progressBar.setVisibility(View.GONE);
+        }
         switch (requestCode) {
             case WsUtils.WS_CODE_NEWS:
                 responseForNews(response);
@@ -240,10 +239,6 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
     }
 
     private void setAdapter() {
-        Log.e("Adapter", "" + mNativeAds.size());
-        if (mNativeAds.size() >= 1) {
-            Log.e("Adapter", "" + mNativeAds.get(0).getPrice());
-        }
         homeAdapter = new HomeAdapter(this, newsModelArrayList, mNativeAds);
         recyclerView.setAdapter(homeAdapter);
     }
@@ -276,6 +271,9 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                 }
                 code = "in";
                 if (Utility.isNetworkAvailable(this)) {
+                    if (progressBar!=null){
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
                     callServiceforNews();
                 } else {
                     Toast.makeText(this, "Please check your internet connection and try again later", Toast.LENGTH_SHORT).show();
@@ -288,6 +286,9 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
                 }
                 code = "us";
                 if (Utility.isNetworkAvailable(this)) {
+                    if (progressBar!=null){
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
                     callServiceforNews();
                 } else {
                     Toast.makeText(this, "Please check your internet connection and try again later", Toast.LENGTH_SHORT).show();
@@ -447,4 +448,5 @@ public class HomeActivity extends AppCompatActivity implements IParseListener, V
         */
         }
     }
+
 }
